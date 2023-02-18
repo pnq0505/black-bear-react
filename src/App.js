@@ -7,8 +7,7 @@ import "yet-another-react-lightbox/styles.css";
 
 function App() {
   const [images, setImages] = useState([]);
-  const [index, setIndex] = useState(null);
-  const [slides, setSlides] = useState([]);
+  const [index, setIndex] = useState(-1);
 
   const handleClick = useCallback((index, item) => {
     setIndex(index);
@@ -21,20 +20,16 @@ function App() {
       )
       .then((res) => {
         const data = res.data;
-        const photoLinks = data.map((d) => {
+        const photos = data.map((d, index) => {
           return {
             src: d.urls.raw,
             width: d.width,
             height: d.height,
             alt: d.alt_description,
+            key: index,
           };
         });
-        setImages(photoLinks);
-        const slides = photoLinks.map((photo) => {
-          return { ...photo, srcSet: photoLinks };
-        });
-        console.log("slides :>> ", slides);
-        setSlides(slides);
+        setImages(photos);
       });
   }, []);
 
@@ -50,13 +45,13 @@ function App() {
   return (
     <>
       <Gallery images={images} onSelect={handleSelect} onClick={handleClick} />
-      {index && (
+      {index >= 0 && (
         <Lightbox
-          open={index}
+          open={index >= 0}
           close={() => {
-            setIndex(null);
+            setIndex(-1);
           }}
-          slides={slides}
+          slides={images}
           index={index}
         />
       )}
