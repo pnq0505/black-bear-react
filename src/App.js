@@ -4,7 +4,7 @@ import axios from "axios";
 import { Gallery } from "react-grid-gallery";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
-import InfiniteScroll from "react-infinite-scroll-component";
+import InfiniteScroll from "react-infinite-scroller";
 
 function App() {
   const [images, setImages] = useState([]);
@@ -51,22 +51,23 @@ function App() {
   );
 
   return (
-    <InfiniteScroll
-      dataLength={images.length}
-      next={fetchImages}
-      hasMore={true}
-      loader={
-        <p style={{ textAlign: "center" }}>
-          <b>Loading...</b>
-        </p>
-      }
-      endMessage={
-        <p style={{ textAlign: "center" }}>
-          <b>Yay! You have seen it all</b>
-        </p>
-      }
-    >
-      <Gallery images={images} onSelect={handleSelect} onClick={handleClick} />
+    <>
+      <InfiniteScroll
+        pageStart={0}
+        loadMore={fetchImages}
+        hasMore={true}
+        loader={
+          <p style={{ textAlign: "center" }}>
+            <b>Loading...</b>
+          </p>
+        }
+      >
+        <Gallery
+          images={images}
+          onSelect={handleSelect}
+          onClick={handleClick}
+        />
+      </InfiniteScroll>
       {index >= 0 && (
         <Lightbox
           open={index >= 0}
@@ -77,7 +78,7 @@ function App() {
           index={index}
         />
       )}
-    </InfiniteScroll>
+    </>
   );
 }
 
