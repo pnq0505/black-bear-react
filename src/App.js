@@ -4,38 +4,40 @@ import axios from "axios";
 import { Gallery } from "react-grid-gallery";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import InfiniteScroll from "react-infinite-scroller";
 
 function App() {
   const [images, setImages] = useState([]);
-  const [index, setIndex] = useState(null);
-  const [slides, setSlides] = useState([]);
+  const [index, setIndex] = useState(-1);
+  const [page, setPage] = useState(1);
 
   const handleClick = useCallback((index, item) => {
     setIndex(index);
   }, []);
 
-  useEffect(() => {
+  const fetchImages = useCallback(() => {
     axios
       .get(
-        "https://api.unsplash.com/photos/?client_id=v5M8YbalIAM6nS2IU07YMKKc1UGlaqkIVJOT69R-hnk&page=2"
+        `https://api.unsplash.com/photos/?client_id=v5M8YbalIAM6nS2IU07YMKKc1UGlaqkIVJOT69R-hnk&page=${page}&per_page=30`
       )
       .then((res) => {
         const data = res.data;
-        const photoLinks = data.map((d) => {
+        const photos = data.map((d, index) => {
           return {
-            src: d.urls.raw,
+            src: d.urls.small_s3,
             width: d.width,
             height: d.height,
             alt: d.alt_description,
           };
         });
-        setImages(photoLinks);
-        const slides = photoLinks.map((photo) => {
-          return { ...photo, srcSet: photoLinks };
-        });
-        console.log("slides :>> ", slides);
-        setSlides(slides);
+        const newImages = images.concat(photos);
+        setImages(newImages);
+        setPage(page + 1);
       });
+  }, [page, images]);
+
+  useEffect(() => {
+    fetchImages();
   }, []);
 
   const handleSelect = useCallback(
@@ -47,16 +49,32 @@ function App() {
     },
     [images]
   );
+
   return (
     <>
-      <Gallery images={images} onSelect={handleSelect} onClick={handleClick} />
-      {index && (
+      <InfiniteScroll
+        pageStart={0}
+        loadMore={fetchImages}
+        hasMore={true}
+        loader={
+          <p style={{ textAlign: "center" }}>
+            <b>Loading...</b>
+          </p>
+        }
+      >
+        <Gallery
+          images={images}
+          onSelect={handleSelect}
+          onClick={handleClick}
+        />
+      </InfiniteScroll>
+      {index >= 0 && (
         <Lightbox
-          open={index}
+          open={index >= 0}
           close={() => {
-            setIndex(null);
+            setIndex(-1);
           }}
-          slides={slides}
+          slides={images}
           index={index}
         />
       )}
